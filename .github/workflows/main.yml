@@ -1,0 +1,47 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Cache node_modules (using package.json hash)
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Install dependencies if cache is missing
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      # Run tests (if any)
+      - name: Run tests
+        run: npm test
+
+      # Start application
+      - name: Start application
+        run: npm start
